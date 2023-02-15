@@ -2,7 +2,7 @@ package list_test
 
 import (
 	"fmt"
-	"list"
+	"github.com/giritli/list"
 	"reflect"
 	"strconv"
 	"testing"
