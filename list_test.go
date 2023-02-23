@@ -95,6 +95,47 @@ func TestReduceInto(t *testing.T) {
 	}
 }
 
+func TestContains(t *testing.T) {
+	type testCase struct {
+		name     string
+		items    list.Of[int]
+		item     int
+		contains bool
+	}
+
+	testCases := []testCase{
+		{
+			"check number exists in list",
+			list.Of[int]{1, 2, 3, 4, 5},
+			1,
+			true,
+		},
+		{
+			"check number does not exist in list",
+			list.Of[int]{1, 2, 3, 4, 5},
+			6,
+			false,
+		},
+		{
+			"check number exists more than once",
+			list.Of[int]{1, 2, 3, 4, 5, 4},
+			4,
+			true,
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.items.Contains(tt.item, func(a, b int) bool {
+				return a == b
+			})
+			if tt.contains != got {
+				t.Errorf("wanted %v, got %v", tt.contains, got)
+			}
+		})
+	}
+}
+
 func TestChunk(t *testing.T) {
 	type testCase struct {
 		name   string
@@ -315,6 +356,41 @@ func TestSort(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.before.Sort(tt.fn)
+			if !reflect.DeepEqual(tt.after, got) {
+				t.Errorf("wanted %v, got %v", tt.after, got)
+			}
+		})
+	}
+}
+
+func TestUnique(t *testing.T) {
+	type testCase struct {
+		name   string
+		before list.Of[int]
+		after  list.Of[int]
+	}
+
+	testCases := []testCase{
+		{
+			"all unique",
+			list.Of[int]{1, 2, 3, 4, 5},
+			list.Of[int]{1, 2, 3, 4, 5},
+		},
+		{
+			"some unique",
+			list.Of[int]{1, 1, 2, 3, 4, 5, 4},
+			list.Of[int]{1, 2, 3, 4, 5},
+		},
+		{
+			"some unique out of order",
+			list.Of[int]{1, 1, 2, 3, 6, 5, 4, 4},
+			list.Of[int]{1, 2, 3, 6, 5, 4},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.before.Unique()
 			if !reflect.DeepEqual(tt.after, got) {
 				t.Errorf("wanted %v, got %v", tt.after, got)
 			}

@@ -4,9 +4,9 @@ import (
 	"sort"
 )
 
-type Of[T any] []T
+type Of[T comparable] []T
 
-func Convert[From, To any](from Of[From], fn func(From) To) Of[To] {
+func Convert[From, To comparable](from Of[From], fn func(From) To) Of[To] {
 	to := make(Of[To], 0, len(from))
 	for _, item := range from {
 		to = append(to, fn(item))
@@ -15,7 +15,7 @@ func Convert[From, To any](from Of[From], fn func(From) To) Of[To] {
 	return to
 }
 
-func ReduceInto[From, To any](from Of[From], fn func(To, From) To) To {
+func ReduceInto[From, To comparable](from Of[From], fn func(To, From) To) To {
 	var zero To
 	if len(from) == 0 {
 		return zero
@@ -27,6 +27,16 @@ func ReduceInto[From, To any](from Of[From], fn func(To, From) To) To {
 	}
 
 	return zero
+}
+
+func (l Of[T]) Contains(item T, fn func(T, T) bool) bool {
+	for _, v := range l {
+		if fn(v, item) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (l Of[T]) Chunk(size uint) []Of[T] {
@@ -91,6 +101,31 @@ func (l Of[T]) Sort(fn func(a, b T) bool) Of[T] {
 	sort.SliceStable(nl, func(i, j int) bool {
 		return fn(l[i], l[j])
 	})
+
+	return nl
+}
+
+func (l Of[T]) Unique() Of[T] {
+	if len(l) <= 1 {
+		return l
+	}
+
+	valueMap := map[T]int{}
+	ri := 0
+	for _, v := range l {
+		if _, ok := valueMap[v]; !ok {
+			valueMap[v] = ri
+		} else {
+			ri--
+		}
+
+		ri++
+	}
+
+	nl := make(Of[T], len(valueMap))
+	for k, v := range valueMap {
+		nl[v] = k
+	}
 
 	return nl
 }
