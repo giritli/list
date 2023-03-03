@@ -6,7 +6,7 @@ import (
 
 type Of[T any] []T
 
-func Convert[From, To comparable](from Of[From], fn func(From) To) Of[To] {
+func Convert[From, To any](from Of[From], fn func(From) To) Of[To] {
 	to := make(Of[To], 0, len(from))
 	for _, item := range from {
 		to = append(to, fn(item))
@@ -15,7 +15,7 @@ func Convert[From, To comparable](from Of[From], fn func(From) To) Of[To] {
 	return to
 }
 
-func ReduceInto[From, To comparable](from Of[From], fn func(To, From) To) To {
+func ReduceInto[From, To any](from Of[From], fn func(To, From) To) To {
 	var zero To
 	if len(from) == 0 {
 		return zero
