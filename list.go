@@ -4,7 +4,7 @@ import (
 	"sort"
 )
 
-type Of[T comparable] []T
+type Of[T any] []T
 
 func Convert[From, To comparable](from Of[From], fn func(From) To) Of[To] {
 	to := make(Of[To], 0, len(from))
@@ -105,6 +105,7 @@ func (l Of[T]) Sort(fn func(a, b T) bool) Of[T] {
 	return nl
 }
 
+/*
 func (l Of[T]) Unique() Of[T] {
 	if len(l) <= 1 {
 		return l
@@ -129,3 +130,4 @@ func (l Of[T]) Unique() Of[T] {
 
 	return nl
 }
+*/
