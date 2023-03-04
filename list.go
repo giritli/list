@@ -29,6 +29,16 @@ func ReduceInto[From, To any](from Of[From], fn func(To, From) To) To {
 	return zero
 }
 
+func GroupBy[T any, K comparable](l Of[T], fn func(T) K) map[K]Of[T] {
+	m := map[K]Of[T]{}
+	for _, item := range l {
+		key := fn(item)
+		m[key] = append(m[key], item)
+	}
+
+	return m
+}
+
 func (l Of[T]) Contains(item T, fn func(T, T) bool) bool {
 	for _, v := range l {
 		if fn(v, item) {
@@ -57,6 +67,17 @@ func (l Of[T]) Chunk(size uint) []Of[T] {
 	}
 
 	return nls
+}
+
+func (l Of[T]) Count(fn func(T) bool) int {
+	i := 0
+	for _, item := range l {
+		if fn(item) {
+			i++
+		}
+	}
+
+	return i
 }
 
 func (l Of[T]) Filter(fn func(T) bool) Of[T] {
@@ -105,13 +126,12 @@ func (l Of[T]) Sort(fn func(a, b T) bool) Of[T] {
 	return nl
 }
 
-/*
 func (l Of[T]) Unique() Of[T] {
 	if len(l) <= 1 {
 		return l
 	}
 
-	valueMap := map[T]int{}
+	valueMap := map[any]int{}
 	ri := 0
 	for _, v := range l {
 		if _, ok := valueMap[v]; !ok {
@@ -125,9 +145,8 @@ func (l Of[T]) Unique() Of[T] {
 
 	nl := make(Of[T], len(valueMap))
 	for k, v := range valueMap {
-		nl[v] = k
+		nl[v] = k.(T)
 	}
 
 	return nl
 }
-*/

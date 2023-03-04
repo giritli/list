@@ -95,6 +95,70 @@ func TestReduceInto(t *testing.T) {
 	}
 }
 
+func TestGroupBy(t *testing.T) {
+	type testStruct struct {
+		Year  int
+		Value string
+	}
+
+	type testCase struct {
+		name string
+		fn   func(testStruct) int
+		list list.Of[testStruct]
+		want map[int]list.Of[testStruct]
+	}
+
+	testCases := []testCase{
+		{
+			"group ints",
+			func(i testStruct) int {
+				return i.Year
+			},
+			list.Of[testStruct]{
+				{
+					Year:  1990,
+					Value: "Bob",
+				},
+				{
+					Year:  1990,
+					Value: "Alice",
+				},
+				{
+					Year:  1991,
+					Value: "Mark",
+				},
+			},
+			map[int]list.Of[testStruct]{
+				1990: {
+					{
+						Year:  1990,
+						Value: "Bob",
+					},
+					{
+						Year:  1990,
+						Value: "Alice",
+					},
+				},
+				1991: {
+					{
+						Year:  1991,
+						Value: "Mark",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			got := list.GroupBy(tt.list, tt.fn)
+			if !reflect.DeepEqual(tt.want, got) {
+				t.Errorf("wanted %v, got %v", tt.list, got)
+			}
+		})
+	}
+}
+
 func TestContains(t *testing.T) {
 	type testCase struct {
 		name     string
@@ -182,6 +246,35 @@ func TestChunk(t *testing.T) {
 			got := tt.before.Chunk(tt.size)
 			if !reflect.DeepEqual(tt.after, got) {
 				t.Errorf("wanted %v, got %v", tt.after, got)
+			}
+		})
+	}
+}
+
+func TestCount(t *testing.T) {
+	type testCase struct {
+		name  string
+		items list.Of[int]
+		fn    func(int) bool
+		want  int
+	}
+
+	testCases := []testCase{
+		{
+			"greater than 5",
+			list.Of[int]{2, 4, 6, 8, 10},
+			func(i int) bool {
+				return i > 5
+			},
+			3,
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.items.Count(tt.fn)
+			if !reflect.DeepEqual(tt.want, got) {
+				t.Errorf("wanted %v, got %v", tt.want, got)
 			}
 		})
 	}
@@ -385,6 +478,80 @@ func TestUnique(t *testing.T) {
 			"some unique out of order",
 			list.Of[int]{1, 1, 2, 3, 6, 5, 4, 4},
 			list.Of[int]{1, 2, 3, 6, 5, 4},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.before.Unique()
+			if !reflect.DeepEqual(tt.after, got) {
+				t.Errorf("wanted %v, got %v", tt.after, got)
+			}
+		})
+	}
+}
+
+func TestUniqueStruct(t *testing.T) {
+	type testStruct struct {
+		A int
+		B string
+	}
+	type testCase struct {
+		name   string
+		before list.Of[testStruct]
+		after  list.Of[testStruct]
+	}
+
+	testCases := []testCase{
+		{
+			"all unique",
+			list.Of[testStruct]{
+				{
+					A: 0,
+					B: "",
+				},
+				{
+					A: 1,
+					B: "A",
+				},
+			},
+			list.Of[testStruct]{
+				{
+					A: 0,
+					B: "",
+				},
+				{
+					A: 1,
+					B: "A",
+				},
+			},
+		},
+		{
+			"some unique",
+			list.Of[testStruct]{
+				{
+					A: 1,
+					B: "A",
+				},
+				{
+					A: 0,
+					B: "",
+				},
+				{
+					A: 1,
+					B: "A",
+				},
+			},
+			list.Of[testStruct]{
+				{
+					A: 1,
+					B: "A",
+				},
+				{
+					A: 0,
+					B: "",
+				},
+			},
 		},
 	}
 
